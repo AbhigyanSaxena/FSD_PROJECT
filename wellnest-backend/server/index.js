@@ -14,7 +14,12 @@ const app = express();
 const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5174,http://127.0.0.1:5174,http://localhost:5173,http://127.0.0.1:5173").split(",").map(origin => origin.trim());
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    let localDevelopmentOrigin = false;
+    try {
+      const parsed = new URL(origin);
+      localDevelopmentOrigin = parsed.protocol === "http:" && ["localhost", "127.0.0.1"].includes(parsed.hostname);
+    } catch {}
+    if (!origin || allowedOrigins.includes(origin) || localDevelopmentOrigin) return callback(null, true);
     return callback(new Error("Origin is not allowed."));
   }
 }));
